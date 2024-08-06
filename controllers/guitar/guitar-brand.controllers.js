@@ -32,8 +32,10 @@ exports.getGuitarsByBrandId = async (req, res, next) => {
 
 exports.createGuitarBrand = async (req, res, next) => {
     const guitarBrand = req.body;
+    const guitarBrandPicture = req.files && req.files.picture ? req.files.picture : null;
+
     try {
-        await createBrand(guitarBrand);
+        await createBrand(guitarBrand, guitarBrandPicture);
         res.status(200).json("Guitar brand created");
     } catch (e) {
         next(e)

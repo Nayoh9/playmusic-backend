@@ -20,10 +20,13 @@ app.use(routes);
 // Creation d'un middleware d'erreur
 app.use((err, req, res, next) => {
 
+
     console.log(err);
+
 
     // Validators error handling
     if (err.errors) {
+
         const errors = err.errors
         const errorsArray = [];
         for (const [key, value] of Object.entries(errors)) {
@@ -33,7 +36,7 @@ app.use((err, req, res, next) => {
     }
 
     // Duplicate document error handling
-    if (err.errorResponse && err.errorResponse.code === 11000) {
+    if (err.name === "MongoServerError" && err.code === 11000) {
         const keyName = Object.keys(err.errorResponse.keyValue);
         return res.status(500).json(`Duplication error : ${keyName}`);
     }

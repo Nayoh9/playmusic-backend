@@ -9,7 +9,7 @@ const Guitar = require("../../database/models/guitar/guitar.model");
 const GuitarCategory = require("../../database/models/guitar/guitar-category.model");
 const GuitarBrand = require("../../database/models/guitar/guitar-brand.model");
 // Function import 
-const { errorCreation } = require("../../utils/functions");
+const { errorCreation, imageChecks } = require("../../utils/functions");
 
 
 // Get all the guitars
@@ -30,27 +30,13 @@ exports.getGuitarByUuid = async (guitarUuid) => {
 // Create one guitar
 exports.createGuitar = async (guitar, guitarPicture) => {
 
-    // Image checks 
-    const maxFileSize = 5 * 1024 * 1024; // 5 Mo in octets
-    const acceptedFormat = ["image/png", "image/jpeg"];
+    const guitarAlreadyInDb = await Guitar.findOne({ name: guitar.name }).exec();
 
-    if (guitarPicture === null) {
-        errorCreation("No file downloaded", 404);
+    if (guitarAlreadyInDb) {
+        errorCreation("This guitar already exist in DB", 409);
     }
 
-    if (Array.isArray(guitarPicture)) {
-        errorCreation("Too much files uploaded", 400)
-    }
-
-    if (guitarPicture.size > maxFileSize) {
-        errorCreation("File to heavy", 413);
-    }
-
-    if (!acceptedFormat.includes(guitarPicture.mimetype)) {
-        errorCreation("Wrong file format", 400);
-    };
-    // Image checks 
-
+    imageChecks(guitarPicture);
 
     // Before creation, i verify if the category and the brand of the guitar exists
     const [guitarCategory, guitarBrand] = await Promise.all([
@@ -68,7 +54,11 @@ exports.createGuitar = async (guitar, guitarPicture) => {
 
     // Use try catch here to verify if the document is well based on the model before trying to upload image
     try {
+
+        const guitarPictureUuid = uuidv4();
         const newGuitar = new Guitar(guitar);
+        newGuitar.picture.uuid = guitarPictureUuid;
+
         await newGuitar.validate();
 
         const fileStream = Readable.from(guitarPicture.data);
@@ -77,7 +67,7 @@ exports.createGuitar = async (guitar, guitarPicture) => {
             client: s3Client,
             params: {
                 Bucket: 'playmusic081107',
-                Key: `${guitarPicture.name}-GUITAR-${uuidv4()}`,
+                Key: `guitaronly${guitarPicture.name}-${guitarPictureUuid}`,
                 Body: fileStream,
                 ContentType: guitarPicture.mimetype,
                 ACL: 'public-read',
@@ -88,7 +78,7 @@ exports.createGuitar = async (guitar, guitarPicture) => {
         });
 
         const uploadedImage = await upload.done();
-        newGuitar.picture = uploadedImage.Location;
+        newGuitar.picture.url = uploadedImage.Location;
 
         return newGuitar.save();
 

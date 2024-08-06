@@ -33,8 +33,9 @@ exports.getGuitarsByCategoryId = async (req, res, next) => {
 
 exports.createGuitarCategory = async (req, res, next) => {
     const guitarCategory = req.body;
+    const guitarCategoryPicture = req.files && req.files.picture ? req.files.picture : null;
     try {
-        await createGuitarCategory(guitarCategory);
+        await createGuitarCategory(guitarCategory, guitarCategoryPicture);
         res.status(200).json("Guitar category created");
     } catch (e) {
         next(e);

@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const schema = mongoose.Schema;
 
-guitarBrancSchema = schema({
+guitarBrandSchema = schema({
     uuid: {
         type: String,
         required: [true, "Error uuid creation"],
@@ -14,6 +14,16 @@ guitarBrancSchema = schema({
         required: [true, "Brand name required"],
         unique: true
     },
+    picture: {
+        url: {
+            type: String
+        },
+        uuid: {
+            type: String,
+            required: [true, "Guitar Brand Picture UUID required"],
+            unique: true
+        }
+    },
     is_deleted: {
         type: Boolean,
         default: false,
@@ -22,6 +32,6 @@ guitarBrancSchema = schema({
 
 }, { timestamps: true })
 
-const GuitarBrand = mongoose.model("guitar-brand", guitarBrancSchema);
+const GuitarBrand = mongoose.model("guitar-brand", guitarBrandSchema);
 
 module.exports = GuitarBrand;

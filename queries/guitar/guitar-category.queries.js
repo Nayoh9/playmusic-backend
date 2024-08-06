@@ -1,10 +1,14 @@
+// Config import
+const s3Client = require("../../config/awsS3.config");
 // Package import
 const { v4: uuidv4 } = require('uuid');
+const { Readable } = require('stream');
+const { Upload } = require("@aws-sdk/lib-storage");
 // Model import
 const GuitarCategory = require("../../database/models/guitar/guitar-category.model");
 const Guitar = require("../../database/models/guitar/guitar.model");
 //Function import 
-const { errorCreation, idValidator } = require("../../utils/functions");
+const { errorCreation, idValidator, imageChecks } = require("../../utils/functions");
 
 
 
@@ -46,11 +50,39 @@ exports.getGuitarsByCategoryId = async (categoryId) => {
 }
 
 
-
 // Create a guitar category
-exports.createGuitarCategory = async (guitarCategory) => {
-    guitarCategory.uuid = uuidv4();
+exports.createGuitarCategory = async (guitarCategory, guitarCategoryPicture) => {
+
+    const guitarCategoryPictureUuid = uuidv4();
     const newGuitarCategory = new GuitarCategory(guitarCategory);
-    return newGuitarCategory.save();
+
+    newGuitarCategory.uuid = uuidv4();
+    newGuitarCategory.picture.uuid = guitarCategoryPictureUuid
+
+    imageChecks(guitarCategoryPicture);
+
+    try {
+        const fileStream = Readable.from(guitarCategoryPicture.data);
+
+        const upload = new Upload({
+            client: s3Client,
+            params: {
+                Bucket: 'playmusic081107',
+                Key: `guitar-category-${guitarCategoryPicture.name}-${guitarCategoryPictureUuid}`,
+                Body: fileStream,
+                ContentType: guitarCategoryPicture.mimetype,
+                ACL: 'public-read',
+            },
+        })
+
+        const uploadedImage = await upload.done();
+
+        newGuitarCategory.picture.url = uploadedImage.Location;
+
+        return newGuitarCategory.save();
+
+    } catch (e) {
+        throw e
+    }
 }
 

@@ -14,6 +14,16 @@ const guitarCategorySchema = schema({
         required: [true, "Category name required"],
         unique: true
     },
+    picture: {
+        uuid: {
+            type: String,
+            required: [true, "Guitar category picture UUID required"],
+            unique: true
+        },
+        url: {
+            type: String
+        }
+    },
     is_deleted: {
         type: Boolean,
         default: false,

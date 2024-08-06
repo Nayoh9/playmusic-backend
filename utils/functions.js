@@ -11,4 +11,27 @@ const errorCreation = (errorMessage, errorCode) => {
     throw error;
 }
 
-module.exports = { idValidator, errorCreation };
+const imageChecks = (image) => {
+
+    const maxFileSize = 5 * 1024 * 1024; // 5 Mo in octets
+    const acceptedFormat = ["image/png", "image/jpeg"];
+
+    if (image === null) {
+        errorCreation("No file downloaded", 404);
+    }
+
+    if (Array.isArray(image)) {
+        errorCreation("Too much files uploaded", 400)
+    }
+
+    if (image.size > maxFileSize) {
+        errorCreation("File to heavy", 413);
+    }
+
+    if (!acceptedFormat.includes(image.mimetype)) {
+        errorCreation("Wrong file format", 400);
+    };
+
+}
+
+module.exports = { idValidator, errorCreation, imageChecks };

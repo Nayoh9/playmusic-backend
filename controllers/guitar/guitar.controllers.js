@@ -11,7 +11,7 @@ exports.getGuitars = async (req, res, next) => {
 }
 
 exports.getGuitarByUuid = async (req, res, next) => {
-    guitarUuid = req.params.guitarUuid;
+    const guitarUuid = req.params.guitarUuid;
     try {
         const guitar = await getGuitarByUuid(guitarUuid);
         res.status(200).json(guitar);
@@ -21,9 +21,8 @@ exports.getGuitarByUuid = async (req, res, next) => {
 }
 
 exports.createGuitar = async (req, res, next) => {
-
     const guitar = req.body;
-    const guitarPicture = req.files.picture;
+    const guitarPicture = req.files && req.files.picture ? req.files.picture : null
 
     try {
         await createGuitar(guitar, guitarPicture);
